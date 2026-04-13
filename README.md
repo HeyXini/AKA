@@ -102,6 +102,17 @@ python vqa-qwen2.5.py --evaluate_only True --model_path ./checkpoints/final_mode
 - Other accuracy
 
 
+## Downloads
+
+### Model Downloads
+- **Qwen2.5-7B**: [https://huggingface.co/Qwen/Qwen2.5-7B](https://huggingface.co/Qwen/Qwen2.5-7B)
+- **ViT-MAE**: [https://huggingface.co/facebook/vit-mae-base/tree/main](https://huggingface.co/facebook/vit-mae-base/tree/main)
+
+### Dataset Downloads
+- **Flickr8k**: [https://github.com/Avaneesh40585/Flickr8k-Dataset](https://github.com/Avaneesh40585/Flickr8k-Dataset)
+- **Flickr30k**: [https://huggingface.co/datasets/nlphuji/flickr30k](https://huggingface.co/datasets/nlphuji/flickr30k)
+- **COCO VQA v2**: [https://visualqa.org/download.html](https://visualqa.org/download.html)
+
 ## Notes
 
 - The model uses 4-bit quantization by default for memory efficiency
