@@ -52,7 +52,6 @@ def process_vqa_sample(sample: Dict, tokenizer: AutoTokenizer, mae_model, proces
             qa_ids = qa_ids + [tokenizer.pad_token_id] * pad_len
             qa_attention_mask = qa_attention_mask + [0] * pad_len
         
-        # 确定答案类型
         answer_lower = answer.lower().strip()
         if answer_lower in ['yes', 'no']:
             answer_type = 0  # yes/no
@@ -62,10 +61,10 @@ def process_vqa_sample(sample: Dict, tokenizer: AutoTokenizer, mae_model, proces
             answer_type = 2  # other
         
         return {
-            "input_ids": image_features,  # 图像特征 (tensor)
-            "attention_mask": torch.ones(len(image_features), dtype=torch.long),  # 图像attention mask
-            "qa_ids": torch.tensor(qa_ids),  # 问题+答案的token ids
-            "qa_attention_mask": torch.tensor(qa_attention_mask),  # 问题+答案的attention mask
+            "input_ids": image_features, 
+            "attention_mask": torch.ones(len(image_features), dtype=torch.long),  
+            "qa_ids": torch.tensor(qa_ids),  
+            "qa_attention_mask": torch.tensor(qa_attention_mask), 
             "answer_start_idx": answer_start_idx,
             "answer_type": answer_type,
             "image_name": image_name,
@@ -75,12 +74,11 @@ def process_vqa_sample(sample: Dict, tokenizer: AutoTokenizer, mae_model, proces
             "all_answers": sample.get("all_answers", [])
         }
     except Exception as e:
-        print(f"处理样本时出错: {e}")
+        print(f"error: {e}")
         return None
 
 
 def process_vqa_data(data: List[Dict], tokenizer: AutoTokenizer, mae_model, processor, image_dir: str, max_length: int = 64) -> List[Dict]:
-    """处理VQA数据"""
     processed_data = []
     for sample in tqdm(data, desc="Processing VQA Data"):
         processed = process_vqa_sample(sample, tokenizer, mae_model, processor, image_dir, max_length)
@@ -90,7 +88,6 @@ def process_vqa_data(data: List[Dict], tokenizer: AutoTokenizer, mae_model, proc
 
 
 def create_vqa_dataset(processed_data: List[Dict]) -> Dataset:
-    """创建VQA数据集"""
     def dataset_generator():
         for item in processed_data:
             yield {
@@ -111,10 +108,8 @@ def create_vqa_dataset(processed_data: List[Dict]) -> Dataset:
 
 
 def main():
-    # 加载数据
     COCO_PATH = "./coco"
     
-    print("加载数据集...")
     with open("./coco/vqav2_subsets/vqav2_train_20k.json", 'r', encoding='utf-8') as f:
         train_subset = json.load(f)
     
@@ -124,44 +119,35 @@ def main():
     with open("./coco/vqav2_subsets/vqav2_test_6k.json", 'r', encoding='utf-8') as f:
         test_subset = json.load(f)
 
+
     
-    print(f"训练集大小: {len(train_subset)}")
-    print(f"验证集大小: {len(val_subset)}")
-    print(f"测试集大小: {len(test_subset)}")
-    
-    # 处理数据
-    print("\n处理训练集...")
     image_dir = os.path.join(COCO_PATH, "train2014")
     train_processed = process_vqa_data(train_subset, tokenizer, mae_model, processor, image_dir)
-    print(f"训练集处理完成，有效样本数: {len(train_processed)}")
+    print(f"train_subset: {len(train_processed)}")
     
-    print("处理验证集...")
     image_dir_val = os.path.join(COCO_PATH, "val2014")
     val_processed = process_vqa_data(val_subset, tokenizer, mae_model, processor, image_dir_val)
-    print(f"验证集处理完成，有效样本数: {len(val_processed)}")
+    print(f"val_subset: {len(val_processed)}")
     
-    print("处理测试集...")
     test_processed = process_vqa_data(test_subset, tokenizer, mae_model, processor, image_dir_val)
-    print(f"测试集处理完成，有效样本数: {len(test_processed)}")
+    print(f"test_subset: {len(test_processed)}")
     
-    print("\n创建数据集...")
     train_dataset = create_vqa_dataset(train_processed)
     val_dataset = create_vqa_dataset(val_processed)
     test_dataset = create_vqa_dataset(test_processed)
     
-    print(f"训练集大小: {len(train_dataset)}")
-    print(f"验证集大小: {len(val_dataset)}")
-    print(f"测试集大小: {len(test_dataset)}")
+    print(f"train_dataset: {len(train_dataset)}")
+    print(f"val_dataset: {len(val_dataset)}")
+    print(f"test_dataset: {len(test_dataset)}")
     
-    print("\n保存数据集...")
     train_dataset.save_to_disk('train_dataset_vqa_vit_clean_20k')
-    print("训练集已保存到 train_dataset_vqa_vit_clean")
+    print("saved train_dataset_vqa_vit_clean")
     
     val_dataset.save_to_disk('val_dataset_vqa_vit_clean_4k')
-    print("验证集已保存到 val_dataset_vqa_vit_clean")
+    print("saved val_dataset_vqa_vit_clean")
     
     test_dataset.save_to_disk('test_dataset_vqa_vit_clean_6k')
-    print("测试集已保存到 test_dataset_vqa_vit_clean")
+    print("saved test_dataset_vqa_vit_clean")
 
 
 if __name__ == "__main__":
