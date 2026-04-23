@@ -88,9 +88,9 @@ def patchify_image(image_tensor, patch_size=32):
     patches_flat - [B, N, C*P*P]
     """
     C, H, W = image_tensor.shape # 3，224，224
-    # 切分非重叠补丁：[B, C, H, W] → [B, C, N_h, N_w, P, P]，N_h=H/P，N_w=W/P
+    # [B, C, H, W] → [B, C, N_h, N_w, P, P]，N_h=H/P，N_w=W/P
     patches = image_tensor.unfold(1, patch_size, patch_size).unfold(2, patch_size, patch_size)
-    # 调整维度并展平：→ [B, N, C*P*P]，N=N_h*N_w（补丁总数）
+    # [B, N, C*P*P]，N=N_h*N_w
     patches = patches.permute(1, 2, 0, 3, 4).contiguous()
     N = patches.shape[0] * patches.shape[1]
     patches_flat = patches.view(N, C * patch_size * patch_size)
@@ -104,7 +104,6 @@ def create_dataset(image_data: List[Dict]) -> Dataset:
     """
 
     def dataset_generator():
-        # 交替生成图像和文本样本
         max_len = len(image_data)
         for i in range(max_len):
             if i < len(image_data):
@@ -127,7 +126,6 @@ tokenizer.padding_side = "right"
 
 
 
-# 存储数据
 with open("dataset/flickr_train.json", "r", encoding="utf-8") as f:
     train_flickr = json.load(f)
 with open("dataset/flickr_val.json", "r", encoding="utf-8") as f:
@@ -141,20 +139,17 @@ val_flickr_format = process_flickr(val_flickr, flickr_dir)
 test_flickr_format = process_flickr(test_flickr, flickr_dir)
 
 
-print("创建数据集...")
 train_dataset = create_dataset(train_flickr_format)
 val_dataset = create_dataset(val_flickr_format)
 test_dataset = create_dataset(test_flickr_format)
 
 
-
-# 保存数据集
 train_dataset.save_to_disk('train_dataset_flickr_random_vit_clean')
-print("训练集已保存到 train_dataset_flickr_random_vit_clean")
+print("saved train_dataset_flickr_random_vit_clean")
 val_dataset.save_to_disk('val_dataset_flickr_random_vit_clean')
-print("验证集已保存到 val_dataset_flickr_random_vit_clean")
+print("saved val_dataset_flickr_random_vit_clean")
 test_dataset.save_to_disk('test_dataset_flickr_random_vit_clean')
-print("测试集已保存到 test_dataset_flickr_random_vit_clean")
+print("saved test_dataset_flickr_random_vit_clean")
 
 
 
