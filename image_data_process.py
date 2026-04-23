@@ -12,12 +12,14 @@ from PIL import Image
 from tqdm import tqdm
 from torchvision import transforms
 from typing import Dict, List
-from transformers import AutoImageProcessor, ViTMAEForPreTraining
+from transformers import AutoImageProcessor, ViTMAEForPreTraining, ViTMAEModel
 
 from transformers import ViTMAEConfig
 
 processor = AutoImageProcessor.from_pretrained("./vit-mae-model")
-mae_model = ViTMAEForPreTraining.from_pretrained("./vit-mae-model").eval().to("cuda")
+config = ViTMAEConfig.from_pretrained("./vit-mae-model")
+config.mask_ratio = 0.0   
+mae_model = ViTMAEModel.from_pretrained("./vit-mae-model", config=config).eval().to("cuda")
 
 
 def preprocess_caption(caption: str) -> str:
@@ -43,7 +45,7 @@ def preprocess_caption(caption: str) -> str:
     return caption
 
 
-def process_text(text: str, tokenizer: AutoTokenizer, max_length: int = 90) -> Dict:
+def process_text(text: str, tokenizer: AutoTokenizer, max_length: int = 60) -> Dict:
     text_inputs = tokenizer(
         text,
         return_tensors="pt",
@@ -75,7 +77,7 @@ def process_flickr(data, data_dir):
             inputs = processor(images=image, return_tensors="pt").to("cuda")
             with torch.no_grad():
                 outputs = mae_model(**inputs, output_hidden_states=True)
-            img_tensor_origin = outputs.hidden_states[-1]
+            img_tensor_origin = outputs.hidden_states[-1][:, 1:]
             img_tensor = img_tensor_origin[0]
 
             samples.append({"image_vector": img_tensor.clone(), "caption": cap, "image_name":img})
