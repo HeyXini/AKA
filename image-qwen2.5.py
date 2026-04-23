@@ -593,7 +593,7 @@ def evaluate_image_captioning(model, test_dataset, tokenizer, device, batch_size
 
     if visualize_attention:
         os.makedirs(attention_output_dir, exist_ok=True)
-        print(f"注意力热力图将保存到: {attention_output_dir}")
+        print(f"save_dir: {attention_output_dir}")
 
     original_model = None
 
@@ -837,7 +837,7 @@ def generate_response(model: MultimodalModel,
         return (generated_texts, attentions) if return_attentions else generated_texts
 
 
-#
+
 def evaluate_saved_model(model_path=None, base_model="Qwen/Qwen2.5-7B", checkpoint_dir=None, use_quantized=True):
     
     quantization_config = BitsAndBytesConfig(
