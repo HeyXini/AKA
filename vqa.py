@@ -18,7 +18,7 @@ def show_top_question_types(samples, topk=20):
 
 
 def load_vqa_split(question_file, annotation_file, image_prefix):
-    # 优化：使用字典解析加速qid_to_question的构建
+    
     with open(question_file, "r", encoding="utf-8") as f:
         q_data = json.load(f)
 
@@ -28,21 +28,19 @@ def load_vqa_split(question_file, annotation_file, image_prefix):
     questions = q_data["questions"]
     annotations = a_data["annotations"]
 
-    # 使用字典推导式替代循环，提高速度
     qid_to_question = {
         q["question_id"]: {
             "image_id": q["image_id"],
             "question": q["question"]
         }
-        for q in tqdm(questions, desc="处理问题")
+        for q in tqdm(questions)
     }
 
     samples = []
-    for ann in tqdm(annotations, desc="处理注释"):
+    for ann in tqdm(annotations):
         qid = ann["question_id"]
         if qid not in qid_to_question:
             continue
-        # 直接使用生成器表达式，避免中间列表
         answers = [a["answer"] for a in ann["answers"]]
         q_item = qid_to_question[qid]
         image_id = q_item["image_id"]
@@ -81,7 +79,6 @@ def stratified_sample(samples, n, seed=42):
     if len(sampled) > n:
         sampled = random.sample(sampled, n)
     elif len(sampled) < n:
-        # 按image_id判断，确保同一图像的所有问题都在同一集合
         used_image_ids = {x["image_id"] for x in sampled}
         remaining = [s for s in samples if s["image_id"] not in used_image_ids]
         extra = random.sample(remaining, min(n - len(sampled), len(remaining)))
@@ -91,7 +88,6 @@ def stratified_sample(samples, n, seed=42):
 
 
 def remove_overlap(source_samples, used_samples):
-    # 按image_id判断，确保同一图像的所有问题都在同一集合
     used_image_ids = {x["image_id"] for x in used_samples}
     return [s for s in source_samples if s["image_id"] not in used_image_ids]
 
